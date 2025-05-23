@@ -1,0 +1,11 @@
+{
+    "id": 1,
+    "name": "Ali Abouei",
+    "team": {
+      "id": 7,
+      "name": "Real Madrid"
+    },
+    "goals": 2,
+    "minutes": 90
+  }
+  
