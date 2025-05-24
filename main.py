@@ -1,4 +1,5 @@
-from json2sql.cli import main
+#!/usr/bin/env python3
+from data2sql.cli import main
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
