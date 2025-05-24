@@ -10,10 +10,11 @@ def infer_sql_type(value: Any) -> str:
 
     Returns:
         str: The inferred SQL type, currently always returns "TEXT".
-            This is a placeholder function for future type inference implementation.
+            This is a placeholder function for future type inference implementation IF NEEDED.
     """
     # Placeholder for data type inference
-    return "TEXT"
+    return "TEXT" 
+
 
 def validate_file_exists(file_path: str) -> bool:
     """Check if a file exists at the given path.
@@ -22,7 +23,7 @@ def validate_file_exists(file_path: str) -> bool:
         file_path (str): Path to the file to check.
 
     Returns:
-        bool: True if the file exists, False otherwise.
+        bool: True if file exists and is readable
     """
     return os.path.isfile(file_path)
 
@@ -37,7 +38,7 @@ def validate_table_name(name: str) -> bool:
             A valid table name:
             - Is not empty
             - Contains only alphanumeric characters and underscores
-            - Does not start with a digit
+            - Not empty and does not start with a digit
     """
     return (
         name and
@@ -50,28 +51,23 @@ def is_valid_date(value: str) -> bool:
     """Check if a string represents a valid date.
 
     Args:
-        value (str): The string to check for date validity.
+        value (str): String to check for date format
 
     Returns:
-        bool: True if the string can be parsed as a valid date with at least
-            year, month, and day components. False otherwise.
+        bool: True if value is a valid date (Y-M-D). False otherwise.
 
-    Note:
-        - Uses dateutil.parser for flexible date parsing
-        - Requires the string to be at least 8 characters long to avoid just years
-        - Returns False for None values or unparseable strings
     """
     try:
-        # Try to parse the date
         date = parse_date(value)
-        # Ensure it has at least year, month, and day components
         formatted = date.strftime('%Y-%m-%d')
-        return len(value) >= 8  # Basic length check to avoid just year
+        #Must be at least 8 chars (YYYYMMDD)
+        return len(value) >= 8  # Basic check to avoid just year values
     except (ValueError, TypeError):
         return False
 
+
 def sanitize_field_name(name: str) -> str:
-    """Sanitize a field name to make it SQL-compatible.
+    """Sanitize a field name to make it SQL-compatible. Basically make a field name safe for SQL use.
 
     Args:
         name (str): The original field name to sanitize.
@@ -82,7 +78,7 @@ def sanitize_field_name(name: str) -> str:
             - Names starting with digits are prefixed with 'f_'
             - Only alphanumeric characters and underscores remain
 
-    Example:
+    Usage:
         >>> sanitize_field_name("First Name!")
         "First_Name_"
         >>> sanitize_field_name("123field")
@@ -90,16 +86,16 @@ def sanitize_field_name(name: str) -> str:
     """
     # Replace spaces and special chars with underscore
     sanitized = ''.join(c if c.isalnum() else '_' for c in name)
-    # Ensure it doesn't start with a number
+    # Check it doesn't start with a number
     if sanitized[0].isdigit():
         sanitized = f"f_{sanitized}"
     return sanitized
 
 def validate_output_path(path: str) -> bool:
-    """Validate if a path is a valid output destination for SQL.
+    """Check if a path is valid for SQL output.
 
     Args:
-        path (str): The path to validate. Can be either a file path or database URL.
+        path: File path or database URL to validate
 
     Returns:
         bool: True if the path is valid, False otherwise.

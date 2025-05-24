@@ -7,6 +7,7 @@ import sqlite3
 from sqlalchemy import create_engine, text
 import csv
 
+
 def infer_type(value: Any) -> str:
     """Infer the SQL data type for a given value.
 
@@ -36,6 +37,8 @@ def infer_type(value: Any) -> str:
         except (ValueError, TypeError):
             return "TEXT"
     return "TEXT"
+
+
 
 def infer_schema(data: List[Dict[str, Any]]) -> Dict[str, str]:
     """Infer SQL schema from a list of dictionaries.
@@ -69,9 +72,9 @@ def load_data(file_path: str, format: Optional[str] = None) -> List[Dict[str, An
     """Load data from a JSON or CSV file into a list of dictionaries.
 
     Args:
-        file_path (str): Path to the input file.
-        format (Optional[str], optional): Format of the input file ('json' or 'csv').
-            If None, format is inferred from file extension. Defaults to None.
+        file_path: Path to your JSON or CSV file
+        format: File format to use ('json' or 'csv'). Leave empty to auto-detect
+               from file extension.
 
     Returns:
         List[Dict[str, Any]]: List of dictionaries where each dictionary represents a row of data.
@@ -79,9 +82,9 @@ def load_data(file_path: str, format: Optional[str] = None) -> List[Dict[str, An
             For CSV: Each row becomes a dictionary with column headers as keys.
 
     Raises:
-        FileNotFoundError: If the input file doesn't exist.
-        json.JSONDecodeError: If the JSON file is invalid.
-        pd.errors.EmptyDataError: If the CSV file is empty.
+        FileNotFoundError: Can't find the input file
+        json.JSONDecodeError: JSON syntax is invalid
+        pd.errors.EmptyDataError: CSV file is empty
     """
     if not format:
         format = 'json' if file_path.lower().endswith('.json') else 'csv'
@@ -98,8 +101,8 @@ def load_data(file_path: str, format: Optional[str] = None) -> List[Dict[str, An
                     data = [data]
             return data
     else:  # CSV
-        df = pd.read_csv(file_path) # read the csv file into a dataframe
-        return df.to_dict('records') # convert the dataframe to a list of dictionaries
+        df = pd.read_csv(file_path)
+        return df.to_dict('records')
 
 def generate_create_table(table_name: str, schema: Dict[str, str]) -> str:
     """Generate a SQL CREATE TABLE statement from a schema definition.
@@ -110,12 +113,9 @@ def generate_create_table(table_name: str, schema: Dict[str, str]) -> str:
 
     Returns:
         str: A SQL CREATE TABLE statement with IF NOT EXISTS clause.
-            Format: CREATE TABLE IF NOT EXISTS table_name (
-                       column1 type1,
-                       column2 type2,
-                       ...
-                   );
     """
+
+
     fields = [f"{name} {type_}" for name, type_ in schema.items()] 
     field_list = ',\n    '.join(fields) # join the fields with a comma and a newline
     return f"CREATE TABLE IF NOT EXISTS {table_name} (\n    {field_list}\n);"   
@@ -129,21 +129,15 @@ def generate_insert_statements(table_name: str, data: List[Dict[str, Any]], sche
         schema (Dict[str, str]): Dictionary mapping column names to their SQL types.
 
     Returns:
-        List[str]: List of SQL INSERT statements.
-            - Null values are skipped in the INSERT statements
-            - String values are properly escaped
-            - Boolean values are converted to 1/0
-            - Empty list if input data is empty
+        List[str]: INSERT statements with escaped text, 1/0 booleans, no NULLs.
 
-    Note:
-        The function handles proper SQL escaping:
-        - Strings and dates are quoted and escaped
-        - Booleans are converted to 1/0
-        - Numbers are converted to strings
     """
+
+    # Avoid inserting NULLs; skip unset columns to keep schema tight
+    # if the data is empty, return an empty list ??? More tests needed
     if not data:
         return []
-    
+    # Generate INSERT statements for each row
     statements = []
     for row in data:
         columns = []
@@ -194,12 +188,12 @@ def process_data(
         file_path (str): Path to the input file (JSON or CSV).
         table_name (str): Name of the target SQL table.
         format (Optional[str], optional): Format of the input file ('json' or 'csv').
-            If None, format is inferred from file extension. Defaults to None.
+            -If None, format is inferred from file extension. Defaults to None.
         output (Optional[str], optional): Output destination.
             - If None: returns SQL statements without writing
             - If starts with 'sqlite:///' or 'postgresql://': writes directly to database
             - Otherwise: treats as file path and writes SQL to file
-            Defaults to None.
+            - Defaults to None.
         preview (bool, optional): Whether this is a preview run. Defaults to False.
 
     Returns:
@@ -209,10 +203,9 @@ def process_data(
             - insert_stmts: List of INSERT statements
 
     Raises:
-        FileNotFoundError: If the input file doesn't exist
-        ValueError: If the table name is invalid
-        Various database errors if writing to database fails
+        Exception: On file or database write errors.
     """
+
     # Load and infer schema
     data = load_data(file_path, format)
     schema = infer_schema(data)

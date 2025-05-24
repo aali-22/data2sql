@@ -16,7 +16,7 @@ def cli():
     """Convert JSON/CSV  data to SQL tables."""
     pass
 
-@cli.command()
+@cli.command() 
 @click.option('--file', required=True, help='Input JSON or CSV file')
 @click.option('--format', type=click.Choice(['json', 'csv']), help='Input file format (auto-detected if not specified)')
 @click.option('--table', required=True, help='Name of the SQL table to create')
@@ -31,7 +31,25 @@ def convert(
     preview: bool,
     interactive: bool
 ):
-    """Convert a JSON or CSV file to SQL statements."""
+    """Convert data from JSON/CSV format to SQL statements.
+
+    Args:
+        file: Path to input file (JSON or CSV)
+        table: Name for the SQL table
+        format: File format to use ('json' or 'csv'). Auto-detected if not specified
+        output: Where to write the SQL. Can be a .sql file or database URL
+        preview: Show the schema before generating SQL
+        interactive: Let user modify column types before generating SQL
+
+    Raises:
+        click.ClickException: When input file is missing or table name is invalid
+        Exception: For data processing or output writing errors
+    
+    Notes:
+        - Preview mode shows schema and CREATE TABLE statement
+        - Interactive mode lets you choose types: TEXT, INTEGER, REAL, DATE, BOOLEAN
+        - Without output, prints CREATE TABLE and first 3 INSERT statements
+    """
     try:
         # Validate inputs
         if not validate_file_exists(file):
@@ -68,11 +86,13 @@ def convert(
         if interactive:
             click.echo("\nPlease confirm or modify the schema:")
             new_schema = {}
+            #Note type_ is used to avoid name conflict with the type keyword in py.
             for field, type_ in schema.items():
                 new_type = click.prompt(
                     f"Field '{field}' (detected as {type_})",
                     type=click.Choice(['TEXT', 'INTEGER', 'REAL', 'DATE', 'BOOLEAN']),
-                    default=type_
+                    default=type_ 
+                    
                 )
                 new_schema[field] = new_type
             
@@ -83,8 +103,10 @@ def convert(
             
             # Write to output if specified
             if output:
+                # if the output is a database url, write the sql to the database
                 if output.startswith(('sqlite:///', 'postgresql://')):
                     write_to_database(create_stmt, insert_stmts, output)
+                # if the output is a file, write the sql to the file
                 else:
                     with open(output, 'w') as f:
                         f.write(create_stmt + '\n\n')
