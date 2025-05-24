@@ -1,6 +1,6 @@
 # data2sql
 
-A flexible CLI tool to convert football data (JSON/CSV) into SQL tables.
+A flexible CLI tool to convert ,preferably, data (JSON/CSV) into SQL tables.
 
 ## Installation
 
@@ -45,7 +45,7 @@ python main.py convert --file player.json --table players --interactive
 - Automatic schema inference from JSON/CSV data
 - Support for basic SQL types (TEXT, INTEGER, REAL, DATE, BOOLEAN)
 - Interactive schema modification
-- Output to .sql file or direct database insertion
+- Output to .sql file or direct database insertion(PostgreSQL/
 - Cross-platform support
 
 ## Development
@@ -59,5 +59,3 @@ The codebase is structured as follows:
 
 MIT
 
-```bash
-python main.py --input json2sql/examples/sample.json --table players
